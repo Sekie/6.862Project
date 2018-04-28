@@ -4,7 +4,7 @@ import numpy as np
 # XYZ - First dimension is atom, second dimension is xyz
 # Atom - Column vector
 def XYZToCoulomb(XYZ, Atom):
-    NumAtoms = Atom.shape[0]
+    NumAtoms = len(Atom)
     CoulombMatrix = np.zeros((NumAtoms, NumAtoms))
 
     # Start constructing the matrix
@@ -21,7 +21,7 @@ def XYZToCoulomb(XYZ, Atom):
     return CoulombMatrix
 
 def GenerateXYZ(Atoms, Torsion, DimerDist = 1.2, SubDist = 0.9, UmbrellaAng = 19.5):
-    NumAtoms = Atoms.shape[0]
+    NumAtoms = len(Atoms)
     XYZ = np.zeros((NumAtoms, 3))
     
     # First atom centered at zero.
@@ -55,12 +55,3 @@ def GenerateXYZ(Atoms, Torsion, DimerDist = 1.2, SubDist = 0.9, UmbrellaAng = 19
     XYZ[7, 2] = DimerDist + dZSub
 
     return XYZ
-
-
-def runtest():
-    XYZ = np.array([[0, 0, 0], [1, 1, 0], [1, 2, 0]])
-    Atoms = np.array([[1, 1, 1, 1, 1, 1, 1, 1]]).transpose()
-    XYZ = GenerateXYZ(Atoms, 120.0, DimerDist = 1., SubDist = 1., UmbrellaAng = 30.)
-    print(XYZ)
-
-runtest()
