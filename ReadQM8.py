@@ -1,14 +1,22 @@
 import numpy as np
+import CoulombMatrix as CoulMat
+import copy
 
+# This function reads the QM8 and QM9 geometry files and forms the XYZ matrices associated for each molecule.
+# The XYZ matrices of all molecules is stored in a list and returned as the first output.
+# The atomic symbol of all atoms in the molecule is stored in a list and returned as the second output.
+# The largest matrix size is the third output (needed to pad matrices). 
 def ReadQM8():
     QM8 = open('qm8.sdf', 'r')
     AllXYZ = []
     AllAtoms = []
+    LargestDim = 0
+
     MoleculeCount = 10
     MoleculeSize = 0
-
     XYZMat = np.zeros((0, 3))
     Atoms = []
+
     for Line in QM8:
         if MoleculeCount < 0:
             MoleculeCount = MoleculeCount + 1
@@ -24,16 +32,28 @@ def ReadQM8():
                 AllAtoms.append(Atoms)
                 XYZMat = np.zeros((0, 3))
                 Atoms = []
+                if MoleculeSize > LargestDim:
+                    LargestDim = copy.copy(MoleculeSize)
                 MoleculeSize = 0
             MoleculeCount = MoleculeCount + 1
         if MoleculeCount == 0:
             Split = Line.split()
             MoleculeSize = int(Split[0])
     
-    return AllXYZ, AllAtoms
-a, b = ReadQM8()
+    return AllXYZ, AllAtoms, LargestDim
 
-print(a[0])
-print(b[0])
-print(a[2])
-print(b[2])
+# Generates np.array that can be used as input data for ML packages.
+# Takes a list of np.arrays, a list of list of characters, and largest dimension.
+def GenerateData(AllXYZ, AllAtoms, MaxDim, repr = 'sorted'):
+    if repr == 'sorted':
+        Cs = [] # Holds the list of sorted matrices
+        for XYZ, Atom in zip(AllXYZ, AllAtoms):
+            C = CoulMat.SortCoulombMat(CoulMat.XYZToCoulomb(XYZ, CoulMat.AtomSymToZ(Atom))) # Sorted coulomb matrix.
+            Cs.append(C)
+        Cs = CoulMat.PadMatrices(Cs, MaxDim) # Pads all matrices
+        X = CoulMat.MakeFeatureMatrix(Cs) # Make feature represention matrix.
+        print(X)
+        return X
+
+AllXYZ, AllAtoms, MaxDim = ReadQM8()
+GenerateData(AllXYZ, AllAtoms, MaxDim)
