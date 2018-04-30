@@ -1,0 +1,3 @@
+from NeuralNet import *
+
+RunNN()
