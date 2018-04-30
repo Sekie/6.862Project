@@ -72,7 +72,7 @@ def XYZToCoulomb(XYZ, Atom):
     for i in range(NumAtoms):
         for j in range(NumAtoms):
             if i == j:
-                CoulombMatrix[i, j] = Atom[i]**2.4
+                CoulombMatrix[i, j] = 0.5 * Atom[i]**2.4
             else:
                 # Calculate the R between the atoms:
                 dXYZ = XYZ[i, :] - XYZ[j, :]

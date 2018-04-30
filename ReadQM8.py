@@ -54,6 +54,3 @@ def GenerateData(AllXYZ, AllAtoms, MaxDim, repr = 'sorted'):
         X = CoulMat.MakeFeatureMatrix(Cs) # Make feature represention matrix.
         print(X)
         return X
-
-AllXYZ, AllAtoms, MaxDim = ReadQM8()
-GenerateData(AllXYZ, AllAtoms, MaxDim)
