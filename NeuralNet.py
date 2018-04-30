@@ -16,6 +16,31 @@ from matplotlib import pyplot as plt
 from ReadQM8 import *
 from Labels import *
 
+class LossHistory(Callback):
+    def on_train_begin(self, logs={}):
+        self.keys = ['loss', 'acc', 'val_loss', 'val_acc']
+        self.values = {}
+        for k in self.keys:
+            self.values['batch_'+k] = []
+            self.values['epoch_'+k] = []
+
+    def on_batch_end(self, batch, logs={}):
+        for k in self.keys:
+            bk = 'batch_'+k
+            if k in logs:
+                self.values[bk].append(logs[k])
+
+    def on_epoch_end(self, epoch, logs={}):
+        for k in self.keys:
+            ek = 'epoch_'+k
+            if k in logs:
+                self.values[ek].append(logs[k])
+
+    def plot(self, keys):
+        for key in keys:
+            plt.plot(np.arange(len(self.values[key])), np.array(self.values[key]), label=key)
+        plt.legend()
+
 def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, split=0, verbose=True):
     # Model specification
     model = Sequential()
@@ -59,7 +84,7 @@ def RunNN():
     AllXYZ, AllAtoms, MaxDim = ReadQM8()
     XFull = GenerateData(AllXYZ, AllAtoms, MaxDim)
     Dim = XFull.shape[0]
-    XTrain, XVal, XTest = DivideData(X)
+    XTrain, XVal, XTest = DivideData(XFull)
 
     YFull = ReadData('E1-CC2')
     print(YFull)
@@ -67,6 +92,8 @@ def RunNN():
     
     layers = [Dense(input_dim= Dim, units = 400, activation='sigmoid'),
               Dense(input_dim= Dim, units = 100, activation="sigmoid")]
+    
+    print("Doing NN things")
 
     run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
 
