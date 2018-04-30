@@ -52,5 +52,4 @@ def GenerateData(AllXYZ, AllAtoms, MaxDim, repr = 'sorted'):
             Cs.append(C)
         Cs = CoulMat.PadMatrices(Cs, MaxDim) # Pads all matrices
         X = CoulMat.MakeFeatureMatrix(Cs) # Make feature represention matrix.
-        print(X)
         return X

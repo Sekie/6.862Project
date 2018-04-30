@@ -47,7 +47,7 @@ def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, sp
     for layer in layers:
         model.add(layer)
     # Define the optimization
-    model.compile(loss='categorical_crossentropy', optimizer=Adam(), metrics=["accuracy"])
+    model.compile(loss='mean_absolute_error', optimizer=Adam(), metrics=['mae'])
     N = X_train.shape[0]
     # Pick batch size
     batch = 32 if N > 1000 else 1     # batch size
@@ -73,6 +73,24 @@ def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, sp
         test_acc = None
     return model, history, val_acc, test_acc
 
+def CrossValidateNN(XFull, YFull, layers, k, epoch = 1):
+    AvgError = 0.0
+    test_acc = 0.0
+    for j in range(k):
+        data_split = np.array_split(XFull, k, 1)
+        labels_split = np.array_split(YFull, k, 1)
+        datajC = np.zeros(shape = (np.size(XFull, 0), 0))
+        labelsjC = np.zeros((1,0))
+        for i in range(k):
+            if i == j:
+                continue
+            else:
+                datajC = np.concatenate((datajC, data_split[i]), axis = 1)
+                labelsjC = np.concatenate((labelsjC, labels_split[i]), axis = 1)
+        model, history, val_acc, test_acc = run_keras(datajC.T, labelsjC.T, None, None, data_split[j].T, labels_split[j].T, layers, epochs = epoch)
+        AvgError = AvgError + test_acc
+    return AvgError / float(k)
+
 def DivideData(X, TrainFrac = 6.0 / 10.0, ValFrac = 2.0 / 10.0):
     NumPts = X.shape[1]
     XTrain = X[:,:int(NumPts * TrainFrac)]
@@ -81,20 +99,30 @@ def DivideData(X, TrainFrac = 6.0 / 10.0, ValFrac = 2.0 / 10.0):
     return XTrain, XVal, XTest
 
 def RunNN():
+    print("Preparing XYZ data.")
     AllXYZ, AllAtoms, MaxDim = ReadQM8()
-    XFull = GenerateData(AllXYZ, AllAtoms, MaxDim)
+    XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
     Dim = XFull.shape[0]
     XTrain, XVal, XTest = DivideData(XFull)
+    XTrain = XTrain.transpose()
+    XVal = XVal.transpose()
+    XTest = XTest.transpose()
 
-    YFull = ReadData('E1-CC2')
-    print(YFull)
+    print("Reading excitation values.")
+    YFull = ReadData('E1-CC2') # Row Vector
     YTrain, YVal, YTest = DivideData(YFull)
+    YTrain = YTrain.transpose()
+    YVal = YVal.transpose()
+    YTest = YTest.transpose()
     
-    layers = [Dense(input_dim= Dim, units = 400, activation='sigmoid'),
-              Dense(input_dim= Dim, units = 100, activation="sigmoid")]
-    
-    print("Doing NN things")
+    print("Starting neural network.")
+    layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
+              Dense(units = 400, activation='sigmoid'),
+              Dense(units = 1, activation="sigmoid")]
 
-    run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
+    #run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
+
+    xval_error = CrossValidateNN(XFull, YFull, layers, 10, epoch = 10)
+    print("The XVal Error is ", xval_error)
 
 RunNN()
