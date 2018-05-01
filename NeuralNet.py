@@ -61,7 +61,7 @@ def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, sp
                   callbacks=[history], verbose=verbose)
     # Evaluate the model on validation data, if any
     if X_val is not None or split > 0:
-        val_acc, val_loss = history.values['epoch_val_acc'][-1], history.values['epoch_val_loss'][-1]
+        val_acc, val_loss = history.values['epoch_val_loss'][-1], history.values['epoch_val_loss'][-1]
         print ("\nLoss on validation set:"  + str(val_loss) + " Accuracy on validation set: " + str(val_acc))
     else:
         val_acc = None
@@ -103,6 +103,7 @@ def RunNN():
     AllXYZ, AllAtoms, MaxDim = ReadQM8()
     XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
     Dim = XFull.shape[0]
+    NumPts = XFull.shape[1]
     XTrain, XVal, XTest = DivideData(XFull)
     XTrain = XTrain.transpose()
     XVal = XVal.transpose()
@@ -122,7 +123,31 @@ def RunNN():
 
     #run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
 
-    xval_error = CrossValidateNN(XFull, YFull, layers, 10, epoch = 10)
-    print("The XVal Error is ", xval_error)
+    # ****** Test error versus training set size.
+    # kfold = range(2,12)
+    # xval = []
+    # datasize = []
+    # for k in range(2, 21):
+    #     xval_error = CrossValidateNN(XFull, YFull, layers, k, epoch = 10)
+    #     xval.append(xval_error)
+    #     datasize.append(float(NumPts) * (1.0 - 1.0 / float(k)))
+    # print(datasize)
+    # print(xval)
+    # plt.plot(datasize, xval)
+    # plt.show()
+
+    # ****** Validation error versus epoch
+    epoches = [1, 10, 20, 50, 75, 100, 200, 500, 750, 1000, 2000, 5000, 7500, 10000]
+    vals_acc = []
+    for ep in epoches:
+        model, history, val_acc, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = ep)
+        vals_acc.append(val_acc)
+    print(epoches)
+    print(vals_acc)
+    plt.plot(epoches, vals_acc)
+    plt.ylabel('Validation MAE')
+    plt.xlabel('Epochs')
+    plt.title('Epoch Optimization')
+    plt.show()
 
 RunNN()
