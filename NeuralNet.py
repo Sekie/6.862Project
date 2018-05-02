@@ -61,7 +61,7 @@ def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, sp
                   callbacks=[history], verbose=verbose)
     # Evaluate the model on validation data, if any
     if X_val is not None or split > 0:
-        val_acc, val_loss = history.values['epoch_val_loss'][-1], history.values['epoch_val_loss'][-1]
+        val_acc, val_loss = history.values['epoch_val_loss'], history.values['epoch_val_loss']
         print ("\nLoss on validation set:"  + str(val_loss) + " Accuracy on validation set: " + str(val_acc))
     else:
         val_acc = None
@@ -137,14 +137,11 @@ def RunNN():
     # plt.show()
 
     # ****** Validation error versus epoch
-    epoches = [1, 10, 20, 50, 75, 100, 200, 500, 750, 1000, 2000, 5000, 7500, 10000]
-    vals_acc = []
-    for ep in epoches:
-        model, history, val_acc, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = ep)
-        vals_acc.append(val_acc)
+    epoches = range(1, 10001)
+    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 10000)
     print(epoches)
-    print(vals_acc)
-    plt.plot(epoches, vals_acc)
+    print(val_loss)
+    plt.plot(epoches, val_loss)
     plt.ylabel('Validation MAE')
     plt.xlabel('Epochs')
     plt.title('Epoch Optimization')
