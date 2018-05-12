@@ -25,15 +25,19 @@ from ReadQM8 import *
 from Labels import *
 from NeuralNet import *
 
-def DoGridSearch(KRR, X, Y):
-    gammas = [100, 10, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
-    Cs = [1, 10, 100, 1000]
+def DoGridSearch(X, Y):
+    gammas = [1000, 100, 10, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+    Cs = [1e-2, 1e-1, 1, 10, 100, 1000]
     TunedParameters = [{'C': Cs, 'gamma': gammas}]
-    clf = GridSearchCV(svm.SVR(kernel = 'rbf'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error')
+    clf = GridSearchCV(svm.SVR(kernel = 'rbf'), TunedParameters, cv = 2, scoring = 'neg_mean_absolute_error')
     clf.fit(X, Y)
     ScoreGrid = -(clf.cv_results_['mean_test_score'].reshape(len(Cs),len(gammas)))
-    plt.imshow(ScoreGrid, cmap = 'rainbow', interpolation='nearest')
+    plt.imshow(ScoreGrid, cmap = 'rainbow')
+    plt.ylabel('C')
+    plt.xlabel('gamma')
+    plt.title('Kernel Ridge Regression Parameter Optimization (MAE)')
     plt.show()
+    return clf.best_estimator_.C, clf.best_estimator_.gamma
 
 def RunKernel():
     print("Preparing XYZ data.")
@@ -41,21 +45,23 @@ def RunKernel():
     XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
     Dim = XFull.shape[0]
     NumPts = XFull.shape[1]
-    XTrain, XVal, XTest = DivideData(XFull)
+    XTrain, XVal, XTest = DivideData(XFull, TrainFrac = 0.8, ValFrac = 0.0)
     XTrain = XTrain.transpose()
     XVal = XVal.transpose()
     XTest = XTest.transpose()
 
     print("Reading excitation values.")
     YFull = ReadData('E1-CC2') # Row Vector
-    YTrain, YVal, YTest = DivideData(YFull)
+    YTrain, YVal, YTest = DivideData(YFull, TrainFrac = 0.8, ValFrac = 0.0)
     YTrain = YTrain.transpose()
     YVal = YVal.transpose()
     YTest = YTest.transpose()
 
-    KRR = svm.SVR(kernel='rbf', degree=3, gamma='auto', coef0=0.0, tol=0.001, C=1.0, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
-    KRR.fit(XFull.transpose(), YFull.ravel())
-    print("whew")
-    
-    DoGridSearch(KRR, XFull.transpose(), YFull.ravel())
+    BestC, BestGamma = DoGridSearch(XTrain, YTrain.ravel())
+    KRR = svm.SVR(kernel='rbf', degree=3, gamma=BestGamma, coef0=0.0, tol=0.001, C=BestC, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
+    KRR.fit(XTrain, YTrain.ravel())
+    YPred = KRR.predict(XTest)
+    DiffY = abs(YPred - YTest.ravel())
+    MAEPredicted = sum(DiffY) / float(len(DiffY))
+    print(MAEPredicted)
 RunKernel()
