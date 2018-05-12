@@ -146,5 +146,3 @@ def RunNN():
     plt.xlabel('Epochs')
     plt.title('Epoch Optimization')
     plt.show()
-
-RunNN()

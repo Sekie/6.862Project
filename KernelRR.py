@@ -23,6 +23,17 @@ from sklearn.svm import SVC
 
 from ReadQM8 import *
 from Labels import *
+from NeuralNet import *
+
+def DoGridSearch(KRR, X, Y):
+    gammas = [100, 10, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
+    Cs = [1, 10, 100, 1000]
+    TunedParameters = [{'C': Cs, 'gamma': gammas}]
+    clf = GridSearchCV(svm.SVR(kernel = 'rbf'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error')
+    clf.fit(X, Y)
+    ScoreGrid = -(clf.cv_results_['mean_test_score'].reshape(len(Cs),len(gammas)))
+    plt.imshow(ScoreGrid, cmap = 'rainbow', interpolation='nearest')
+    plt.show()
 
 def RunKernel():
     print("Preparing XYZ data.")
@@ -43,7 +54,8 @@ def RunKernel():
     YTest = YTest.transpose()
 
     KRR = svm.SVR(kernel='rbf', degree=3, gamma='auto', coef0=0.0, tol=0.001, C=1.0, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
-    KRR.fit(XFull.transpose(), YFull.transpose())
+    KRR.fit(XFull.transpose(), YFull.ravel())
     print("whew")
-
+    
+    DoGridSearch(KRR, XFull.transpose(), YFull.ravel())
 RunKernel()

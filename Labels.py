@@ -7,5 +7,5 @@ import operator
 import pandas as pd
 
 def ReadData(CalcLabel):
-    CalcDF = pd.read_csv("qm8.sdf.csv")
+    CalcDF = pd.read_csv("test.sdf.csv")
     return CalcDF[[CalcLabel]].as_matrix().transpose()
