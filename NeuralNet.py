@@ -137,12 +137,18 @@ def RunNN():
     # plt.show()
 
     # ****** Validation error versus epoch
-    epoches = range(1, 10001)
-    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 10000)
+    epoches = range(1, 2001)
+    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 2000)
     print(epoches)
     print(val_loss)
+    minarg = np.argmin(val_loss)
+    print(minarg)
+    print(test_acc[minarg])
     plt.plot(epoches, val_loss)
-    plt.ylabel('Validation MAE')
+    plt.plot(epoches, test_acc)
+    plt.ylabel('MAE')
     plt.xlabel('Epochs')
     plt.title('Epoch Optimization')
     plt.show()
+
+#RunNN()

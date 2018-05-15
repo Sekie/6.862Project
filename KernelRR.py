@@ -26,10 +26,14 @@ from Labels import *
 from NeuralNet import *
 
 def DoGridSearch(X, Y):
-    gammas = [1000, 100, 10, 1, 1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
-    Cs = [1e-2, 1e-1, 1, 10, 100, 1000]
+    Cs = [1, 1e3, 1e6]
+    gammas = [1e-4, 1e-3, 1e-2, 1e-1]
     TunedParameters = [{'C': Cs, 'gamma': gammas}]
-    clf = GridSearchCV(svm.SVR(kernel = 'rbf'), TunedParameters, cv = 2, scoring = 'neg_mean_absolute_error')
+
+    print(Cs)
+    print(gammas)
+
+    clf = GridSearchCV(svm.SVR(kernel = 'poly'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error', verbose = True)
     clf.fit(X, Y)
     ScoreGrid = -(clf.cv_results_['mean_test_score'].reshape(len(Cs),len(gammas)))
     plt.imshow(ScoreGrid, cmap = 'rainbow')
@@ -57,11 +61,18 @@ def RunKernel():
     YVal = YVal.transpose()
     YTest = YTest.transpose()
 
+    print("Optimizing Kernel Ridge Regression Parameters")
     BestC, BestGamma = DoGridSearch(XTrain, YTrain.ravel())
-    KRR = svm.SVR(kernel='rbf', degree=3, gamma=BestGamma, coef0=0.0, tol=0.001, C=BestC, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
+    KRR = svm.SVR(kernel='poly', degree=3, gamma=BestGamma, coef0=0.0, tol=0.001, C=BestC, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
     KRR.fit(XTrain, YTrain.ravel())
+
+    YPredTrain = KRR.predict(XTrain)
+    DiffYTrain = abs(YPredTrain - YTrain.ravel())
+    print(sum(DiffYTrain) / float(len(DiffYTrain)))
+
     YPred = KRR.predict(XTest)
     DiffY = abs(YPred - YTest.ravel())
     MAEPredicted = sum(DiffY) / float(len(DiffY))
+    print(BestC, BestGamma)
     print(MAEPredicted)
 RunKernel()

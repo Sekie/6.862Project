@@ -7,7 +7,7 @@ import copy
 # The atomic symbol of all atoms in the molecule is stored in a list and returned as the second output.
 # The largest matrix size is the third output (needed to pad matrices). 
 def ReadQM8():
-    QM8 = open('test.sdf', 'r')
+    QM8 = open('qm8.sdf', 'r')
     AllXYZ = []
     AllAtoms = []
     LargestDim = 0
