@@ -1,6 +1,7 @@
 import numpy as np
 import CoulombMatrix as CoulMat
 import copy
+from Labels import *
 
 # This function reads the QM8 and QM9 geometry files and forms the XYZ matrices associated for each molecule.
 # The XYZ matrices of all molecules is stored in a list and returned as the first output.

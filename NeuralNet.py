@@ -95,8 +95,12 @@ def CrossValidateNN(XFull, YFull, layers, k, epoch = 1):
     return AvgError / float(k)
 
 def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
+    print("Hello@@")
     print("Starting neural network.")
     layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
+              Dense(units = 400, activation='sigmoid'),
+              Dense(units = 400, activation='sigmoid'),
+              Dense(units = 400, activation='sigmoid'),
               Dense(units = 400, activation='sigmoid'),
               Dense(units = 1, activation="linear")]
 
@@ -116,8 +120,8 @@ def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     # plt.show()
 
     # ****** Validation error versus epoch
-    epoches = range(1, 10001)
-    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 10000)
+    epoches = range(1, 501)
+    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 500, verbose = True)
     print(epoches)
     print(val_loss)
     minarg = np.argmin(val_loss)
@@ -129,8 +133,13 @@ def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     plt.title('Epoch Optimization')
     plt.show()
     print(test_acc[minarg])
+    print(len(layers) - 1)
     plt.plot(epoches, val_loss)
     plt.plot(epoches, test_acc, c='green')
+    plt.ylabel('MAE')
+    plt.xlabel('Epochs')
+    plt.title('Epoch Optimization')
+    plt.legend(['Validation Error', 'Training Error'])
     plt.show()
 
 def RunNN(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
