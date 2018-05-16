@@ -26,14 +26,14 @@ from Labels import *
 from NeuralNet import *
 
 def DoGridSearch(X, Y):
-    Cs = [1, 1e3, 1e6]
-    gammas = [1e-4, 1e-3, 1e-2, 1e-1]
+    Cs = [1, 1e1, 1e2, 1e3, 1e4]
+    gammas = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1]
     TunedParameters = [{'C': Cs, 'gamma': gammas}]
 
     print(Cs)
     print(gammas)
 
-    clf = GridSearchCV(svm.SVR(kernel = 'poly'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error', verbose = True)
+    clf = GridSearchCV(svm.SVR(kernel = 'laplacian'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error', verbose = True)
     clf.fit(X, Y)
     ScoreGrid = -(clf.cv_results_['mean_test_score'].reshape(len(Cs),len(gammas)))
     plt.imshow(ScoreGrid, cmap = 'rainbow')
@@ -43,27 +43,12 @@ def DoGridSearch(X, Y):
     plt.show()
     return clf.best_estimator_.C, clf.best_estimator_.gamma
 
-def RunKernel():
-    print("Preparing XYZ data.")
-    AllXYZ, AllAtoms, MaxDim = ReadQM8()
-    XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
-    Dim = XFull.shape[0]
-    NumPts = XFull.shape[1]
-    XTrain, XVal, XTest = DivideData(XFull, TrainFrac = 0.8, ValFrac = 0.0)
-    XTrain = XTrain.transpose()
-    XVal = XVal.transpose()
-    XTest = XTest.transpose()
-
-    print("Reading excitation values.")
-    YFull = ReadData('E1-CC2') # Row Vector
-    YTrain, YVal, YTest = DivideData(YFull, TrainFrac = 0.8, ValFrac = 0.0)
-    YTrain = YTrain.transpose()
-    YVal = YVal.transpose()
-    YTest = YTest.transpose()
-
+def RunKernel(XTrain, YTrain, XVal, YVal, XTest, YTest):
     print("Optimizing Kernel Ridge Regression Parameters")
     BestC, BestGamma = DoGridSearch(XTrain, YTrain.ravel())
-    KRR = svm.SVR(kernel='poly', degree=3, gamma=BestGamma, coef0=0.0, tol=0.001, C=BestC, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
+    # BestC = 100000.0
+    # BestGamma = 1e-9
+    KRR = svm.SVR(kernel='laplacian', degree=3, gamma=BestGamma, coef0=0.0, tol=0.001, C=BestC, epsilon=0.1, shrinking=True, cache_size=200, verbose=False, max_iter=-1)
     KRR.fit(XTrain, YTrain.ravel())
 
     YPredTrain = KRR.predict(XTrain)
@@ -75,4 +60,11 @@ def RunKernel():
     MAEPredicted = sum(DiffY) / float(len(DiffY))
     print(BestC, BestGamma)
     print(MAEPredicted)
-RunKernel()
+    
+    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red')
+    plt.plot(np.linspace(0, 0.5, 2), np.linspace(0, 0.5, 2))
+    plt.ylabel('Predicted Excitation Energy (eV)')
+    plt.xlabel('True Excitation Energy (eV)')
+    plt.title('Kernel Ridge Regression (rbf) Learned Excitation Energies')
+    plt.show()
+#RunKernel()

@@ -1,5 +1,6 @@
 import pdb
 import numpy as np
+from numpy.random import seed
 import itertools
 
 np.random.seed(0)
@@ -69,6 +70,8 @@ def run_keras(X_train, y_train, X_val, y_val, X_test, y_test, layers, epochs, sp
     if X_test is not None:
         test_loss, test_acc = model.evaluate(X_test, y_test, batch_size=batch)
         print ("\nLoss on test set:"  + str(test_loss) + " Accuracy on test set: " + str(test_acc))
+        test_loss = history.values['epoch_loss'] # I ADDED THIS
+        test_acc = history.values['epoch_loss'] # I ADDED THIS
     else:
         test_acc = None
     return model, history, val_acc, test_acc
@@ -91,35 +94,11 @@ def CrossValidateNN(XFull, YFull, layers, k, epoch = 1):
         AvgError = AvgError + test_acc
     return AvgError / float(k)
 
-def DivideData(X, TrainFrac = 6.0 / 10.0, ValFrac = 2.0 / 10.0):
-    NumPts = X.shape[1]
-    XTrain = X[:,:int(NumPts * TrainFrac)]
-    XVal = X[:,int(NumPts * TrainFrac):int(NumPts * TrainFrac + NumPts * ValFrac)]
-    XTest = X[:,int(NumPts * TrainFrac + NumPts * ValFrac):]
-    return XTrain, XVal, XTest
-
-def RunNN():
-    print("Preparing XYZ data.")
-    AllXYZ, AllAtoms, MaxDim = ReadQM8()
-    XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
-    Dim = XFull.shape[0]
-    NumPts = XFull.shape[1]
-    XTrain, XVal, XTest = DivideData(XFull)
-    XTrain = XTrain.transpose()
-    XVal = XVal.transpose()
-    XTest = XTest.transpose()
-
-    print("Reading excitation values.")
-    YFull = ReadData('E1-CC2') # Row Vector
-    YTrain, YVal, YTest = DivideData(YFull)
-    YTrain = YTrain.transpose()
-    YVal = YVal.transpose()
-    YTest = YTest.transpose()
-    
+def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     print("Starting neural network.")
     layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
               Dense(units = 400, activation='sigmoid'),
-              Dense(units = 1, activation="sigmoid")]
+              Dense(units = 1, activation="linear")]
 
     #run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
 
@@ -137,18 +116,51 @@ def RunNN():
     # plt.show()
 
     # ****** Validation error versus epoch
-    epoches = range(1, 2001)
-    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 2000)
+    epoches = range(1, 10001)
+    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 10000)
     print(epoches)
     print(val_loss)
     minarg = np.argmin(val_loss)
     print(minarg)
-    print(test_acc[minarg])
+    print(val_loss[minarg])
     plt.plot(epoches, val_loss)
-    plt.plot(epoches, test_acc)
     plt.ylabel('MAE')
     plt.xlabel('Epochs')
     plt.title('Epoch Optimization')
     plt.show()
+    print(test_acc[minarg])
+    plt.plot(epoches, val_loss)
+    plt.plot(epoches, test_acc, c='green')
+    plt.show()
+
+def RunNN(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
+    print("Starting neural network.")
+    layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
+              Dense(units = 400, activation='sigmoid'),
+              Dense(units = 1, activation="linear")]
+
+    model = Sequential()
+    for layer in layers:
+        model.add(layer)
+    # Define the optimization
+    model.compile(loss='mean_absolute_error', optimizer=Adam(), metrics=['mae'])
+    N = XTrain.shape[0]
+    # Pick batch size
+    batch = 32 if N > 1000 else 1     # batch size
+    history = LossHistory()
+    # Fit the model
+    model.fit(XTrain, YTrain, epochs=500, batch_size=batch, validation_split=0,
+                  callbacks=[history], verbose=False)
+    # Evaluate the model on test data, if any
+    test_loss, test_acc = model.evaluate(XTest, YTest, batch_size=batch)
+    print ("\nLoss on test set:"  + str(test_loss) + " Accuracy on test set: " + str(test_acc))
+    YPred = model.predict(XTest, batch_size = batch)
+    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red')
+    plt.plot(np.linspace(0, 0.5, 2), np.linspace(0, 0.5, 2))
+    plt.ylabel('Predicted Excitation Energy (eV)')
+    plt.xlabel('True Excitation Energy (eV)')
+    plt.title('NN Learned Excitation Energies')
+    plt.show()
+
 
 #RunNN()

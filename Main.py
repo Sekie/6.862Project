@@ -1,3 +1,4 @@
 from NeuralNet import *
+from KernelRR import *
 
-RunNN()
+RunKernel()

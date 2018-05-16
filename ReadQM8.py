@@ -53,3 +53,30 @@ def GenerateData(AllXYZ, AllAtoms, MaxDim, repr = 'sorted'):
         Cs = CoulMat.PadMatrices(Cs, MaxDim) # Pads all matrices
         X = CoulMat.MakeFeatureMatrix(Cs) # Make feature represention matrix.
         return X
+
+def DivideData(X, TrainFrac = 6.0 / 10.0, ValFrac = 2.0 / 10.0):
+    NumPts = X.shape[1]
+    XTrain = X[:,:int(NumPts * TrainFrac)]
+    XVal = X[:,int(NumPts * TrainFrac):int(NumPts * TrainFrac + NumPts * ValFrac)]
+    XTest = X[:,int(NumPts * TrainFrac + NumPts * ValFrac):]
+    return XTrain, XVal, XTest
+
+def FormData(TrainFrac = 0.6, ValFrac = 0.2):
+    print("Preparing XYZ data.")
+    AllXYZ, AllAtoms, MaxDim = ReadQM8()
+    XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
+    Dim = XFull.shape[0]
+    NumPts = XFull.shape[1]
+    XTrain, XVal, XTest = DivideData(XFull, TrainFrac = TrainFrac, ValFrac = ValFrac)
+    XTrain = XTrain.transpose()
+    XVal = XVal.transpose()
+    XTest = XTest.transpose()
+
+    print("Reading excitation values.")
+    YFull = ReadData('E1-CC2') # Row Vector
+    YTrain, YVal, YTest = DivideData(YFull, TrainFrac = TrainFrac, ValFrac = ValFrac)
+    YTrain = YTrain.transpose()
+    YVal = YVal.transpose()
+    YTest = YTest.transpose()
+
+    return XTrain, YTrain, XVal, YVal, XTest, YTest, Dim
