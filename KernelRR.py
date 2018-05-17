@@ -27,14 +27,14 @@ from Labels import *
 from NeuralNet import *
 
 def DoGridSearch(X, Y):
-    alphas = [1e-3, 1e-2, 1e-1]
-    gammas = [1e-4, 1e-3, 1e-2]
+    alphas = [1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1.0, 1e1, 1e2]
+    gammas = [1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
     TunedParameters = [{'alpha': alphas, 'gamma': gammas}]
 
     print(alphas)
     print(gammas)
 
-    clf = GridSearchCV(KernelRidge(kernel = 'laplacian'), TunedParameters, cv = 5, scoring = 'neg_mean_absolute_error', verbose = True)
+    clf = GridSearchCV(KernelRidge(kernel = 'rbf'), TunedParameters, cv = 10, scoring = 'neg_mean_absolute_error', verbose = True)
     clf.fit(X, Y)
     ScoreGrid = -(clf.cv_results_['mean_test_score'].reshape(len(alphas),len(gammas)))
     plt.imshow(ScoreGrid, cmap = 'rainbow')
@@ -46,10 +46,10 @@ def DoGridSearch(X, Y):
     return clf.best_estimator_.alpha, clf.best_estimator_.gamma
 
 def RunKernel(XTrain, YTrain, XVal, YVal, XTest, YTest):
-    print("Optimizing Kernel Ridge Regression Parameters~!")
-    BestAlpha, BestGamma = DoGridSearch(XTrain, YTrain.ravel())
-    #BestGamma = 1e-3
-    #BestAlpha = 1e-3
+    print("Optimizing Kernel Ridge Regression Parameters")
+    #BestAlpha, BestGamma = DoGridSearch(XTrain, YTrain.ravel())
+    BestAlpha = 0.01
+    BestGamma = 0.001
     KRR = KernelRidge(kernel='laplacian', gamma=BestGamma, alpha = BestAlpha)
     KRR.fit(XTrain, YTrain.ravel())
 
@@ -67,6 +67,6 @@ def RunKernel(XTrain, YTrain, XVal, YVal, XTest, YTest):
     plt.plot(np.linspace(0, 0.5, 2), np.linspace(0, 0.5, 2))
     plt.ylabel('Predicted Excitation Energy (a.u.)')
     plt.xlabel('True Excitation Energy (a.u.)')
-    plt.title('Kernel Ridge Regression (rbf) Learned Excitation Energies')
+    plt.title('Kernel Ridge Regression (Laplacian) Learned Excitation Energies')
     plt.show()
 #RunKernel()

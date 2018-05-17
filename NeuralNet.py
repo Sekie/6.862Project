@@ -95,13 +95,11 @@ def CrossValidateNN(XFull, YFull, layers, k, epoch = 1):
     return AvgError / float(k)
 
 def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
-    print("Hello@@")
+    print("Hello^")
     print("Starting neural network.")
-    layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
-              Dense(units = 400, activation='sigmoid'),
-              Dense(units = 400, activation='sigmoid'),
-              Dense(units = 400, activation='sigmoid'),
-              Dense(units = 400, activation='sigmoid'),
+    layers = [Dense(input_dim = Dim, units = 75, activation='sigmoid'),
+              Dense(units = 300, activation='sigmoid'),
+              Dense(units = 300, activation='sigmoid'),
               Dense(units = 1, activation="linear")]
 
     #run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 1)
@@ -120,15 +118,15 @@ def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     # plt.show()
 
     # ****** Validation error versus epoch
-    epoches = range(1, 501)
-    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 500, verbose = True)
+    epoches = range(1, 2501)
+    model, history, val_loss, test_acc = run_keras(XTrain, YTrain, XVal, YVal, XTest, YTest, layers, epochs = 2500, verbose = True)
     print(epoches)
     print(val_loss)
     minarg = np.argmin(val_loss)
     print(minarg)
     print(val_loss[minarg])
     plt.plot(epoches, val_loss)
-    plt.ylabel('MAE')
+    plt.ylabel('MAE (a.u.)')
     plt.xlabel('Epochs')
     plt.title('Epoch Optimization')
     plt.show()
@@ -144,8 +142,9 @@ def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
 
 def RunNN(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     print("Starting neural network.")
-    layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
-              Dense(units = 400, activation='sigmoid'),
+    layers = [Dense(input_dim = Dim, units = 75, activation='sigmoid'),
+              Dense(units = 300, activation='sigmoid'),
+              Dense(units = 300, activation='sigmoid'),
               Dense(units = 1, activation="linear")]
 
     model = Sequential()

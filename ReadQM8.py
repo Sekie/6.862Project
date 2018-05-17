@@ -55,14 +55,14 @@ def GenerateData(AllXYZ, AllAtoms, MaxDim, repr = 'sorted'):
         X = CoulMat.MakeFeatureMatrix(Cs) # Make feature represention matrix.
         return X
 
-def DivideData(X, TrainFrac = 6.0 / 10.0, ValFrac = 2.0 / 10.0):
+def DivideData(X, TrainFrac = 8.0 / 10.0, ValFrac = 1.0 / 10.0):
     NumPts = X.shape[1]
     XTrain = X[:,:int(NumPts * TrainFrac)]
     XVal = X[:,int(NumPts * TrainFrac):int(NumPts * TrainFrac + NumPts * ValFrac)]
     XTest = X[:,int(NumPts * TrainFrac + NumPts * ValFrac):]
     return XTrain, XVal, XTest
 
-def FormData(TrainFrac = 0.6, ValFrac = 0.2):
+def FormData(TrainFrac = 0.8, ValFrac = 0.1):
     print("Preparing XYZ data.")
     AllXYZ, AllAtoms, MaxDim = ReadQM8()
     XFull = GenerateData(AllXYZ, AllAtoms, MaxDim) # Column vectors
