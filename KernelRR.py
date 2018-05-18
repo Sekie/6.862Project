@@ -63,7 +63,7 @@ def RunKernel(XTrain, YTrain, XVal, YVal, XTest, YTest):
     print(BestAlpha, BestGamma)
     print(MAEPredicted)
     
-    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red')
+    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red', s = 5)
     plt.plot(np.linspace(0, 0.5, 2), np.linspace(0, 0.5, 2))
     plt.ylabel('Predicted Excitation Energy (a.u.)')
     plt.xlabel('True Excitation Energy (a.u.)')

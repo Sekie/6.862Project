@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import seed
 import itertools
 
-np.random.seed(0)
+#np.random.seed(0)
 from keras.models import Sequential
 from keras.optimizers import SGD, Adam
 from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
@@ -142,9 +142,10 @@ def RunEpoch(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
 
 def RunNN(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     print("Starting neural network.")
-    layers = [Dense(input_dim = Dim, units = 75, activation='sigmoid'),
+    layers = [Dense(input_dim = Dim, units = 100, activation='sigmoid'),
               Dense(units = 300, activation='sigmoid'),
               Dense(units = 300, activation='sigmoid'),
+              #Dense(units = 300, activation='sigmoid'),
               Dense(units = 1, activation="linear")]
 
     model = Sequential()
@@ -163,10 +164,10 @@ def RunNN(XTrain, YTrain, XVal, YVal, XTest, YTest, Dim):
     test_loss, test_acc = model.evaluate(XTest, YTest, batch_size=batch)
     print ("\nLoss on test set:"  + str(test_loss) + " Accuracy on test set: " + str(test_acc))
     YPred = model.predict(XTest, batch_size = batch)
-    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red')
+    plt.scatter(YTest.tolist(), YPred.tolist(), c = 'red', s = 5)
     plt.plot(np.linspace(0, 0.5, 2), np.linspace(0, 0.5, 2))
-    plt.ylabel('Predicted Excitation Energy (eV)')
-    plt.xlabel('True Excitation Energy (eV)')
+    plt.ylabel('Predicted Excitation Energy (a.u.)')
+    plt.xlabel('True Excitation Energy (a.u.)')
     plt.title('NN Learned Excitation Energies')
     plt.show()
 

@@ -27,4 +27,5 @@ def SplitData(XFull, YFull, Frac):
     YTest = YTest.transpose()
 
     print("Dataset Size: ", 21786 * Frac)
+    print(XTrain.shape[0])
     return XTrain, YTrain, XTest, YTest
